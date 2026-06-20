@@ -227,17 +227,26 @@ const loadRule = async () => {
 }
 
 const handleSubmit = async () => {
+  if (!form.value.room_id) {
+    alert('请选择适用房间')
+    return
+  }
   submitting.value = true
   try {
+    const payload = {
+      ...form.value,
+      enabled: Boolean(form.value.enabled)
+    }
     if (isEdit.value) {
-      await linkageRuleApi.update(ruleId.value, form.value as Partial<LinkageRule>)
+      await linkageRuleApi.update(ruleId.value, payload)
     } else {
-      await linkageRuleApi.create(form.value as Omit<LinkageRule, 'id' | 'created_at' | 'updated_at'>)
+      await linkageRuleApi.create(payload as Omit<LinkageRule, 'id' | 'created_at' | 'updated_at'>)
     }
     router.back()
-  } catch (e) {
+  } catch (e: any) {
     console.error('Submit error:', e)
-    alert('保存失败，请重试')
+    const errorMsg = e?.response?.data?.error || e?.message || '保存失败，请重试'
+    alert(errorMsg)
   } finally {
     submitting.value = false
   }

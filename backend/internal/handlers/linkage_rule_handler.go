@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"smart-home/internal/services"
+	"smart-home/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -19,24 +20,24 @@ func NewLinkageRuleHandler() *LinkageRuleHandler {
 }
 
 type CreateLinkageRuleRequest struct {
-	RoomID       uuid.UUID `json:"room_id" binding:"required"`
-	Name         string    `json:"name" binding:"required"`
-	Description  string    `json:"description"`
-	TriggerType  string    `json:"trigger_type" binding:"required"`
-	TriggerValue string    `json:"trigger_value" binding:"required"`
-	ActionType   string    `json:"action_type" binding:"required"`
-	ActionValue  string    `json:"action_value" binding:"required"`
-	Enabled      bool      `json:"enabled"`
+	RoomID       uuid.UUID    `json:"room_id" binding:"required"`
+	Name         string       `json:"name" binding:"required"`
+	Description  string       `json:"description"`
+	TriggerType  string       `json:"trigger_type" binding:"required"`
+	TriggerValue string       `json:"trigger_value" binding:"required"`
+	ActionType   string       `json:"action_type" binding:"required"`
+	ActionValue  string       `json:"action_value" binding:"required"`
+	Enabled      utils.FlexBool `json:"enabled"`
 }
 
 type UpdateLinkageRuleRequest struct {
-	Name         string `json:"name" binding:"required"`
-	Description  string `json:"description"`
-	TriggerType  string `json:"trigger_type" binding:"required"`
-	TriggerValue string `json:"trigger_value" binding:"required"`
-	ActionType   string `json:"action_type" binding:"required"`
-	ActionValue  string `json:"action_value" binding:"required"`
-	Enabled      bool   `json:"enabled"`
+	Name         string       `json:"name" binding:"required"`
+	Description  string       `json:"description"`
+	TriggerType  string       `json:"trigger_type" binding:"required"`
+	TriggerValue string       `json:"trigger_value" binding:"required"`
+	ActionType   string       `json:"action_type" binding:"required"`
+	ActionValue  string       `json:"action_value" binding:"required"`
+	Enabled      utils.FlexBool `json:"enabled"`
 }
 
 func (h *LinkageRuleHandler) GetAll(c *gin.Context) {
@@ -76,7 +77,7 @@ func (h *LinkageRuleHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	rule, err := h.service.Create(req.RoomID, req.Name, req.Description, req.TriggerType, req.TriggerValue, req.ActionType, req.ActionValue, req.Enabled)
+	rule, err := h.service.Create(req.RoomID, req.Name, req.Description, req.TriggerType, req.TriggerValue, req.ActionType, req.ActionValue, req.Enabled.Bool())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -95,7 +96,7 @@ func (h *LinkageRuleHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	rule, err := h.service.Update(id, req.Name, req.Description, req.TriggerType, req.TriggerValue, req.ActionType, req.ActionValue, req.Enabled)
+	rule, err := h.service.Update(id, req.Name, req.Description, req.TriggerType, req.TriggerValue, req.ActionType, req.ActionValue, req.Enabled.Bool())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
