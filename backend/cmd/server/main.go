@@ -29,6 +29,7 @@ func main() {
 	deviceHandler := handlers.NewDeviceHandler()
 	linkageRuleHandler := handlers.NewLinkageRuleHandler()
 	environmentHandler := handlers.NewEnvironmentHandler()
+	systemHandler := handlers.NewSystemHandler()
 
 	api := r.Group("/api/v1")
 	{
@@ -62,6 +63,12 @@ func main() {
 			environment.GET("/latest", environmentHandler.GetLatestAll)
 			environment.GET("/latest/:room_id", environmentHandler.GetLatestByRoom)
 			environment.GET("/history/:room_id", environmentHandler.GetHistory)
+		}
+
+		system := api.Group("/system")
+		{
+			system.GET("/status", systemHandler.GetStatus)
+			system.POST("/force-mode", systemHandler.SetForceMode)
 		}
 	}
 

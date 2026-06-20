@@ -114,8 +114,8 @@ func (s *GatewaySimulator) updateSensorData(data *RoomSensorData) {
 	data.Humidity += (rand.Float64() - 0.5) * 1
 	data.Humidity = clamp(data.Humidity, 20, 90)
 
-	data.Pm25 += (rand.Float64() - 0.5) * 3
-	data.Pm25 = clamp(data.Pm25, 0, 200)
+	data.Pm25 += (rand.Float64() - 0.5) * 8
+	data.Pm25 = clamp(data.Pm25, 0, 300)
 
 	data.Formaldehyde += (rand.Float64() - 0.5) * 0.005
 	data.Formaldehyde = clamp(data.Formaldehyde, 0, 0.3)

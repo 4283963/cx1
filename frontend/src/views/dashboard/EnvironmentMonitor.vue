@@ -9,6 +9,38 @@
           <p class="text-gray-400 text-sm mt-1">全屋环境数据实时监控大屏</p>
         </div>
         <div class="flex items-center gap-6">
+          <div
+            v-if="envStore.severelyPollutedRooms.size > 0"
+            class="flex items-center gap-2 px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-lg animate-pulse"
+          >
+            <span class="text-red-500 text-lg">⚠️</span>
+            <span class="text-red-400 text-sm font-medium">
+              {{ envStore.severelyPollutedRooms.size }} 个房间严重污染
+            </span>
+          </div>
+          <div
+            v-if="envStore.globalForceMode"
+            class="flex items-center gap-2 px-4 py-2 bg-red-600/30 border-2 border-red-500 rounded-lg force-mode-glow"
+          >
+            <span class="text-red-400 text-lg">🚨</span>
+            <span class="text-red-300 text-sm font-bold">
+              全屋新风强启中
+            </span>
+          </div>
+          <button
+            v-if="hasDangerRoom && !envStore.globalForceMode"
+            @click="handleForceMode"
+            class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold rounded-lg shadow-lg shadow-red-500/30 transition-all hover:scale-105 active:scale-95 force-mode-glow"
+          >
+            🚨 一键开启全屋新风
+          </button>
+          <button
+            v-if="envStore.globalForceMode"
+            @click="handleForceMode(false)"
+            class="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold rounded-lg transition-all hover:scale-105 active:scale-95"
+          >
+            关闭强启模式
+          </button>
           <div class="flex items-center gap-2">
             <span
               :class="[
@@ -40,9 +72,11 @@
               @click="selectedRoom = room"
               :class="[
                 'bg-dark-200/50 backdrop-blur rounded-xl p-4 border transition-all cursor-pointer hover:scale-105',
-                selectedRoom?.room_id === room.room_id
-                  ? 'border-cyan-500/50 shadow-lg shadow-cyan-500/20'
-                  : 'border-white/10 hover:border-white/30'
+                envStore.isRoomSeverelyPolluted(room.room_id)
+                  ? 'border-red-500 border-2 danger-border-flash danger-pulse bg-red-900/20'
+                  : selectedRoom?.room_id === room.room_id
+                    ? 'border-cyan-500/50 shadow-lg shadow-cyan-500/20'
+                    : 'border-white/10 hover:border-white/30'
               ]"
             >
               <div class="flex items-center justify-between mb-3">
@@ -68,8 +102,25 @@
                   <span :class="getValueColor(room.humidity_status)">{{ room.humidity.toFixed(1) }}%</span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-gray-400">🌫️ PM2.5</span>
-                  <span :class="getValueColor(room.pm25_status)">{{ room.pm25.toFixed(0) }} μg/m³</span>
+                  <span :class="[
+                    'flex items-center gap-1',
+                    envStore.isRoomSeverelyPolluted(room.room_id) ? 'text-red-400 font-bold' : 'text-gray-400'
+                  ]">
+                    <span>🌫️</span>
+                    <span>PM2.5</span>
+                    <span
+                      v-if="envStore.isRoomSeverelyPolluted(room.room_id)"
+                      class="text-xs px-1.5 py-0.5 bg-red-500 text-white rounded animate-pulse"
+                    >
+                      严重超标
+                    </span>
+                  </span>
+                  <span :class="[
+                    getValueColor(room.pm25_status),
+                    envStore.isRoomSeverelyPolluted(room.room_id) ? 'font-bold text-lg animate-pulse' : ''
+                  ]">
+                    {{ room.pm25.toFixed(0) }} μg/m³
+                  </span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-400">🧪 甲醛</span>
@@ -288,6 +339,10 @@ const avgFormaldehyde = computed(() => {
   return data.reduce((sum, d) => sum + d.formaldehyde, 0) / data.length
 })
 
+const hasDangerRoom = computed(() => {
+  return envStore.severelyPollutedRooms.size > 0
+})
+
 const uptime = computed(() => {
   const diff = Date.now() - startTime.value
   const hours = Math.floor(diff / 3600000)
@@ -305,6 +360,27 @@ const getOverallStatus = (room: RoomEnvironmentData): 'good' | 'warning' | 'dang
 
 const getValueColor = (status: string) => {
   return status === 'good' ? 'text-green-400' : status === 'warning' ? 'text-yellow-400' : 'text-red-400'
+}
+
+const handleForceMode = async (enable: boolean = true) => {
+  if (enable) {
+    const confirmed = window.confirm(
+      `⚠️ 即将开启全屋新风强启模式\n\n` +
+      `检测到 ${envStore.severelyPollutedRooms.size} 个房间 PM2.5 连续严重超标\n` +
+      `开启后将强制启动所有房间的新风系统和空气净化器\n\n` +
+      `是否确认开启？`
+    )
+    if (!confirmed) return
+  }
+
+  envStore.setGlobalForceMode(enable)
+
+  if (enable) {
+    console.log('🚨 全屋新风强启模式已开启')
+    alert('✅ 全屋新风强启模式已开启！\n\n所有房间的新风系统和空气净化器已强制启动。')
+  } else {
+    console.log('✅ 全屋新风强启模式已关闭')
+  }
 }
 
 const updateTime = () => {

@@ -42,3 +42,13 @@ export const environmentApi = {
   getHistory: (roomId: string, params?: { start_time?: string; end_time?: string; limit?: number }) =>
     request.get<any, ApiResponse<EnvironmentData[]>>(`/environment/history/${roomId}`, { params }),
 }
+
+export interface SystemStatus {
+  force_mode: boolean
+}
+
+export const systemApi = {
+  getStatus: () => request.get<any, ApiResponse<SystemStatus>>('/system/status'),
+  setForceMode: (enabled: boolean) =>
+    request.post<any, ApiResponse<SystemStatus>>('/system/force-mode', { enabled }),
+}

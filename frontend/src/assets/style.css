@@ -35,4 +35,46 @@ body {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
+  .danger-border-flash {
+    animation: danger-border-flash 0.5s ease-in-out infinite alternate;
+  }
+  .danger-pulse {
+    animation: danger-pulse 1s ease-in-out infinite;
+  }
+  .force-mode-glow {
+    animation: force-mode-glow 1.5s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes danger-border-flash {
+  0% {
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.2), inset 0 0 5px rgba(239, 68, 68, 0.1);
+  }
+  50% {
+    border-color: rgba(239, 68, 68, 0.8);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), inset 0 0 15px rgba(239, 68, 68, 0.2);
+  }
+  100% {
+    border-color: rgba(239, 68, 68, 1);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.9), inset 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+}
+
+@keyframes danger-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes force-mode-glow {
+  0% {
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.9), 0 0 50px rgba(239, 68, 68, 0.5);
+  }
 }

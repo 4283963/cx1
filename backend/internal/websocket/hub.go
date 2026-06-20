@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"smart-home/internal/services"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -116,13 +117,47 @@ func (c *Client) readPump() {
 		c.Conn.Close()
 	}()
 
+	systemService := services.NewSystemService()
+
 	for {
-		_, _, err := c.Conn.ReadMessage()
+		_, msgBytes, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("WebSocket read error: %v", err)
 			}
 			break
+		}
+
+		var msg struct {
+			Type string                 `json:"type"`
+			Data map[string]interface{} `json:"data"`
+		}
+
+		if err := json.Unmarshal(msgBytes, &msg); err != nil {
+			log.Printf("WebSocket message parse error: %v", err)
+			continue
+		}
+
+		switch msg.Type {
+		case "force_mode":
+			if enabled, ok := msg.Data["enabled"].(bool); ok {
+				systemService.SetForceMode(enabled)
+				log.Printf("收到客户端强启模式请求: enabled=%v", enabled)
+
+				response := map[string]interface{}{
+					"type": "force_mode_result",
+					"data": map[string]interface{}{
+						"success": true,
+						"enabled": enabled,
+					},
+				}
+				responseBytes, _ := json.Marshal(response)
+				c.Send <- responseBytes
+
+				BroadcastMessage("force_mode_update", map[string]interface{}{
+					"enabled": enabled,
+				})
+			}
 		}
 	}
 }
